@@ -1,25 +1,17 @@
 require('dotenv').config();
 const Discord = require('discord.js');
+const fs = require('fs');
 const bot = new Discord.Client();
+//const config = require('./config.json');
 const TOKEN = process.env.TOKEN;
 
 bot.login(TOKEN);
+//bot.login(config.token);
 
-bot.on('ready', () => {
-  console.info(`Logged in as ${bot.user.tag}!`);
-});
-
-bot.on('message', msg => {
-  if (msg.content === 'ping') {
-    msg.reply('pong');
-    msg.channel.send('pong');
-
-  } else if (msg.content.startsWith('!kick')) {
-    if (msg.mentions.users.size) {
-      const taggedUser = msg.mentions.users.first();
-      msg.channel.send(`You wanted to kick: ${taggedUser.username}`);
-    } else {
-      msg.reply('Please tag a valid user!');
-    }
-  }
-});
+fs.readdir("./events/", (err, files) => {
+    files.forEach((file) => {
+        const eventHandler = require(`./events/${file}`)
+        const eventName = file.split(".")[0]
+        bot.on(eventName, (...args) => eventHandler(bot, ...args))
+    })
+})
